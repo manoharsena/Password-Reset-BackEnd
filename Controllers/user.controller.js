@@ -10,13 +10,13 @@ export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // const existingUser = await User.findOne({ email });
-    // if (existingUser) {
-    //   return res.status(400).json({
-    //     status: false,
-    //     message: `User with ${existingUser.email} mail id already exists`,
-    //   });
-    // }
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        status: false,
+        message: `User with ${existingUser.email} mail id already exists`,
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ username, email, password: hashedPassword });
@@ -82,17 +82,15 @@ export const forgotPassword = async (req, res) => {
       const tokenString = generateRandomString(20);
       const mailId = req.body.email;
       //Reset Link
-      const resetLink = `${process.env.RESET_LINK}?token=${tokenString}&email=${mailId}`;
+      const resetLink = `${process.env.RESET_LINK}?token=${tokenString}`;
 
       const message = `<p>Hello ${userExists.username},</p>
           <p>
-            You have requested to reset your password. Click the button below to
-            reset it:
+            You have requested to reset your password. Click the link below to
+            reset your password:
           </p>
           <a href="${resetLink}">
-            <button style="padding: 10px; background-color: #000; color: white; border: none; border-radius: 5px; cursor: pointer;">
-              Reset Your Password
-            </button>
+            ${resetLink}
           </a>`;
       await sendMail(req.body.email, message);
 
